@@ -1,91 +1,83 @@
 import java.io.*;
-import java.net.MalformedURLException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-public class HttpClientTest {
-	public static void main(String[] args) throws IOException {
 
-		// NOTE: you must manually set API_KEY below using information retrieved from your IBM Cloud account. (https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/ml-authentication.html?context=wx)
+public class java_code {
+    public static void main(String[] args) throws IOException {
 
-		String API_KEY = "<your API key>";
+        String API_KEY = "<your-ibm-api-key>";
 
-		HttpURLConnection tokenConnection = null;
-		HttpURLConnection scoringConnection = null;
-		BufferedReader tokenBuffer = null;
-		BufferedReader scoringBuffer = null;
-		try {
-			// Getting IAM token
-			URL tokenUrl = new URL("https://iam.cloud.ibm.com/identity/token?grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey=" + API_KEY);
-			tokenConnection = (HttpURLConnection) tokenUrl.openConnection();
-			tokenConnection.setDoInput(true);
-			tokenConnection.setDoOutput(true);
-			tokenConnection.setRequestMethod("POST");
-			tokenConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-			tokenConnection.setRequestProperty("Accept", "application/json");
-			
-			if (tokenConnection.getResponseCode() == 200) { // Successful response
-				tokenBuffer = new BufferedReader(new InputStreamReader(tokenConnection.getInputStream()));
-			} else { // Error response
-				tokenBuffer = new BufferedReader(new InputStreamReader(tokenConnection.getErrorStream()));
-			}
+        String deploymentUrl = "https://us-south.ml.cloud.ibm.com/ml/v4/deployments/<deployment-id>/ai_service_stream?version=2021-05-01";
 
+        HttpURLConnection tokenConnection = null;
+        HttpURLConnection scoringConnection = null;
+        BufferedReader tokenBuffer = null;
+        BufferedReader scoringBuffer = null;
+
+        try {
+            URL tokenUrl = new URL("https://iam.cloud.ibm.com/identity/token");
+            tokenConnection = (HttpURLConnection) tokenUrl.openConnection();
+            tokenConnection.setDoOutput(true);
+            tokenConnection.setRequestMethod("POST");
+            tokenConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            tokenConnection.setRequestProperty("Accept", "application/json");
+
+            String body = "grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey=" + API_KEY;
+            OutputStreamWriter out = new OutputStreamWriter(tokenConnection.getOutputStream());
+            out.write(body);
+            out.flush();
+            out.close();
+
+            tokenBuffer = new BufferedReader(new InputStreamReader(tokenConnection.getInputStream()));
+            StringBuilder tokenResponse = new StringBuilder();
             String line;
-			StringBuffer jsonString = new StringBuffer();
             while ((line = tokenBuffer.readLine()) != null) {
-                jsonString.append(line);
+                tokenResponse.append(line);
             }
-            System.out.println("Token response body:\n" + jsonString);
-			// Scoring request
-			URL scoringUrl = new URL("https://us-south.ml.cloud.ibm.com/ml/v4/deployments/3553aed4-7284-4a5f-a70f-1c12334a241e/ai_service_stream?version=2021-05-01");
-			String iam_token = "Bearer " + jsonString.toString().split(":")[1].split("\"")[1];
-			scoringConnection = (HttpURLConnection) scoringUrl.openConnection();
-			scoringConnection.setDoInput(true);
-			scoringConnection.setDoOutput(true);
-			scoringConnection.setRequestMethod("POST");
-			scoringConnection.setRequestProperty("Accept", "application/json");
-			scoringConnection.setRequestProperty("Authorization", iam_token);
-			scoringConnection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-			OutputStreamWriter writer = new OutputStreamWriter(scoringConnection.getOutputStream(), "UTF-8");
 
-			// NOTE:  manually define and pass the array(s) of values to be scored in the next line
-			String payload = {"messages":[{"content":"","role":""}]};
+            String iam_token = "Bearer " + tokenResponse.toString().split("\"access_token\":\"")[1].split("\"")[0];
 
-			writer.write(payload);
-			writer.close();
+            URL scoringUrl = new URL(deploymentUrl);
+            scoringConnection = (HttpURLConnection) scoringUrl.openConnection();
+            scoringConnection.setDoOutput(true);
+            scoringConnection.setRequestMethod("POST");
+            scoringConnection.setRequestProperty("Accept", "application/json");
+            scoringConnection.setRequestProperty("Authorization", iam_token);
+            scoringConnection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
 
-			if (scoringConnection.getResponseCode() == 200) { // Successful response
-				scoringBuffer = new BufferedReader(new InputStreamReader(scoringConnection.getInputStream()));
-			} else { // Error response
-				scoringBuffer = new BufferedReader(new InputStreamReader(scoringConnection.getErrorStream()));
-			}
+            String payload = "{ \"messages\": [ { \"content\": \"What is UPI fraud?\", \"role\": \"user\" } ] }";
 
+            OutputStreamWriter writer = new OutputStreamWriter(scoringConnection.getOutputStream(), "UTF-8");
+            writer.write(payload);
+            writer.flush();
+            writer.close();
+
+            InputStream inputStream = scoringConnection.getResponseCode() == 200
+                    ? scoringConnection.getInputStream()
+                    : scoringConnection.getErrorStream();
+
+            scoringBuffer = new BufferedReader(new InputStreamReader(inputStream));
+            StringBuilder response = new StringBuilder();
             String lineScoring;
-			StringBuffer jsonStringScoring = new StringBuffer();
             while ((lineScoring = scoringBuffer.readLine()) != null) {
-                jsonStringScoring.append(lineScoring);
+                response.append(lineScoring);
             }
-            System.out.println("Scoring response body:\n" + jsonStringScoring);
-		} catch (IOException e) {
-			System.out.println("The request was not valid.");
-			System.out.println(e.getMessage());
-		}
-		finally {
-			if (tokenConnection != null) {
-				tokenConnection.disconnect();
-			}
-			if (tokenBuffer != null) {
-				tokenBuffer.close();
-			}
-			if (scoringConnection != null) {
-				scoringConnection.disconnect();
-			}
-			if (scoringBuffer != null) {
-				scoringBuffer.close();
-			}
-		}
-	}
+
+            System.out.println("\n✅ AI Response:");
+            System.out.println(response.toString());
+
+        } catch (Exception e) {
+            System.err.println("❌ Error occurred: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            if (tokenConnection != null)
+                tokenConnection.disconnect();
+            if (scoringConnection != null)
+                scoringConnection.disconnect();
+            if (tokenBuffer != null)
+                tokenBuffer.close();
+            if (scoringBuffer != null)
+                scoringBuffer.close();
+        }
+    }
 }
