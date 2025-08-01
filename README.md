@@ -55,8 +55,6 @@ DigiWise_Bot/
 
 📹 [Click here to watch the demo](Demo/DigiWise — DigiWise*Bot * IBM watsonx - Google Chrome 2025-07-31 20-35-19.mp4)
 
-> You can also find screenshots in (Demo) for a quick look at DigiWise in action.
-
 ---
 
 ## 💻 Code Samples
