@@ -53,7 +53,7 @@ DigiWise_Bot/
 
 ## 🎥 Demo Video
 
-📹 [Click here to watch the demo](demo/DigiWise — DigiWise*Bot * IBM watsonx - Google Chrome 2025-07-31 20-35-19.mp4)
+📹 [Click here to watch the demo](demo/demovideo.mp4)
 
 ---
 
