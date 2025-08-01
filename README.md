@@ -55,7 +55,7 @@ DigiWise_Bot/
 
 📹 [Click here to watch the demo](Demo/DigiWise — DigiWise*Bot * IBM watsonx - Google Chrome 2025-07-31 20-35-19.mp4)
 
-> You can also find screenshots in [`demo/screenshots/`](demo/screenshots/) for a quick look at DigiWise in action.
+> You can also find screenshots in (Demo) for a quick look at DigiWise in action.
 
 ---
 
@@ -63,11 +63,11 @@ DigiWise_Bot/
 
 You can call DigiWise using the IBM watsonx.ai API in any language:
 
-- [Python](code_samples/python_code.py)
-- [Java](code_samples/java_code.java)
-- [Scala](code_samples/scala_code.scala)
-- [JavaScript](code_samples/javascript_code.js)
-- [cURL](code_samples/curl_code.sh)
+- [Python](Code_samples/python_code.py)
+- [Java](Code_samples/java_code.java)
+- [Scala](Code_samples/scala_code.scala)
+- [JavaScript](Code_samples/javascript_code.js)
+- [cURL](Code_samples/curl_code.sh)
 
 ---
 
